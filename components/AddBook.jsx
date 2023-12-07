@@ -6,6 +6,9 @@ import { useState, useEffect } from "react";
 //shadcn components
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
+
+import { ButtonLoading } from "./ButtonLoading";
+
 import {
   Select,
   SelectContent,
@@ -25,6 +28,9 @@ export default function AddBook() {
     genre: "",
     numPages: "",
   });
+
+  //state to set isFetching ==> to render loading button
+  const [isFetching, setIsFetching] = useState(false);
 
   // ======== Event Handler ===========
   const handleChange = (e) => {
@@ -61,6 +67,7 @@ export default function AddBook() {
     }
 
     try {
+      setIsFetching(true);
       // Make a POST request to addbook backend API
       const response = await fetch(process.env.ADDBOOK_URL, {
         method: "POST",
@@ -74,9 +81,10 @@ export default function AddBook() {
           numPages: bookState.numPages,
         }),
       });
-
+      setIsFetching(false);
       if (!response.ok) {
-        throw new Error("Error fetching books");
+        setIsFetching(false);
+        throw new Error("Error adding books");
       }
 
       const data = await response.json();
@@ -91,6 +99,7 @@ export default function AddBook() {
     } catch (error) {
       console.error("Error adding books to database:", error);
       //display toast to show error
+      setIsFetching(false);
       toast({
         variant: "destructive",
         title: "Error",
@@ -169,10 +178,14 @@ export default function AddBook() {
         </div>
 
         {/* =====Submit button======= */}
-        <div className="button  flex justify-center items-center m-2">
-          <Button type="submit" className="w-[150px]">
-            Submit
-          </Button>
+        <div className="button flex justify-center items-center m-2">
+          {isFetching ? (
+            <ButtonLoading />
+          ) : (
+            <Button type="submit" className="w-[150px]">
+              Submit
+            </Button>
+          )}
         </div>
       </form>
     </div>

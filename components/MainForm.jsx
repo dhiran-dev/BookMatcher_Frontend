@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import FetchedTable from "./FetchedTable";
+import { ButtonLoading } from "./ButtonLoading";
 //shadcn ui components
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
@@ -26,6 +27,8 @@ export default function MainForm() {
     bookGenre: "",
     numberOfPages: "",
   });
+  //state to set isFetching ==> to render loading button
+  const [isFetching, setIsFetching] = useState(false);
 
   //========Event Handlers===========
   const handleChange = (e) => {
@@ -45,7 +48,6 @@ export default function MainForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       formState.studentName === "" ||
       formState.bookGenre === "" ||
@@ -61,7 +63,8 @@ export default function MainForm() {
 
     try {
       // Make a POST request to your fetchbooks API
-      const response = await fetch(process.env.FETCHBOOKS_URL, {
+      setIsFetching(true);
+      const response = await fetch(process.env.FETCHBOOKS_UR, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,8 +75,9 @@ export default function MainForm() {
           numPagesPreference: formState.numberOfPages,
         }),
       });
-
+      setIsFetching(false);
       if (!response.ok) {
+        setIsFetching(false);
         throw new Error("Error fetching books");
       }
 
@@ -85,9 +89,10 @@ export default function MainForm() {
       toast({
         variant: "success",
         title: "Success!",
-        description: "Fetching results",
+        description: "Fetched results",
       });
     } catch (error) {
+      setIsFetching(false);
       console.error("Error fetching books:", error);
 
       toast({
@@ -104,6 +109,7 @@ export default function MainForm() {
         onSubmit={handleSubmit}
         className="flex flex-col h-content  max-w-md"
       >
+        {/* =====StudentName Input======= */}
         <div className="student-name flex p-2 justify-center items-center ">
           <label className="w-60" htmlFor="studentName">
             Username:
@@ -119,6 +125,7 @@ export default function MainForm() {
           />
         </div>
 
+        {/* =====Genre Select======= */}
         <div className="book-genre flex p-2 justify-center items-center">
           <label className="w-60" htmlFor="bookGenre">
             Book Genre:
@@ -140,6 +147,7 @@ export default function MainForm() {
           </Select>
         </div>
 
+        {/* =====Pages Input======= */}
         <div className="no-pages flex p-2 justify-center items-center ">
           <label className="w-60" htmlFor="numberOfPages">
             Number of Pages:
@@ -154,10 +162,15 @@ export default function MainForm() {
           />
         </div>
 
-        <div className="button  flex justify-center items-center m-2">
-          <Button type="submit" className="w-[150px]">
-            Submit
-          </Button>
+        {/* =====Submit button======= */}
+        <div className="button flex justify-center items-center m-2">
+          {isFetching ? (
+            <ButtonLoading />
+          ) : (
+            <Button type="submit" className="w-[150px]">
+              Submit
+            </Button>
+          )}
         </div>
       </form>
       {/* {console.log(tableState.books, "printing in line")} */}
