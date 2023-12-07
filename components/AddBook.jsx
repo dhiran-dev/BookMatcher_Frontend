@@ -3,8 +3,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 
-import FetchedTable from "./FetchedTable";
-//shadcn ui components
+//shadcn components
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import {
@@ -16,30 +15,30 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function MainForm() {
-  const { toast } = useToast();
+export default function AddBook() {
+  const { toast } = useToast("");
 
-  //states
-  const [tableState, setTableState] = useState([]);
-  const [formState, setFormState] = useState({
-    studentName: "",
-    bookGenre: "",
-    numberOfPages: "",
+  //state to store input values from form in admin page
+  const [bookState, setBookState] = useState({
+    title: "",
+    author: "",
+    genre: "",
+    numPages: "",
   });
 
-  //========Event Handlers===========
+  // ======== Event Handler ===========
   const handleChange = (e) => {
-    setFormState({
-      ...formState,
+    setBookState({
+      ...bookState,
       [e.target.name]: e.target.value,
     });
-    console.log(formState);
+    console.log(bookState);
   };
 
   const handleSelect = (e) => {
-    setFormState({
-      ...formState,
-      bookGenre: e,
+    setBookState({
+      ...bookState,
+      genre: e,
     });
   };
 
@@ -47,10 +46,12 @@ export default function MainForm() {
     e.preventDefault();
 
     if (
-      formState.studentName === "" ||
-      formState.bookGenre === "" ||
-      formState.numberOfPages === ""
+      bookState.title === "" ||
+      bookState.author === "" ||
+      bookState.genre === "" ||
+      bookState.numPages === ""
     ) {
+      //display toast to show error
       toast({
         variant: "destructive",
         title: "Error",
@@ -60,16 +61,17 @@ export default function MainForm() {
     }
 
     try {
-      // Make a POST request to your fetchbooks API
-      const response = await fetch(process.env.FETCHBOOKS_URL, {
+      // Make a POST request to addbook backend API
+      const response = await fetch(process.env.ADDBOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: formState.studentName,
-          genrePreference: formState.bookGenre,
-          numPagesPreference: formState.numberOfPages,
+          title: bookState.title,
+          author: bookState.author,
+          genre: bookState.genre,
+          numPages: bookState.numPages,
         }),
       });
 
@@ -80,45 +82,57 @@ export default function MainForm() {
       const data = await response.json();
 
       // Handle the response data as needed
-      setTableState(data);
-
+      //display toast to show success message
       toast({
         variant: "success",
         title: "Success!",
-        description: "Fetching results",
+        description: "Book data added to database successfully",
       });
     } catch (error) {
-      console.error("Error fetching books:", error);
-
+      console.error("Error adding books to database:", error);
+      //display toast to show error
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Error fetching books",
+        description: "Error adding books to database",
       });
     }
   };
 
   return (
-    <div className=" m-[20px] form-component flex flex-col items-center">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col h-content  max-w-md"
-      >
-        <div className="student-name flex p-2 justify-center items-center ">
-          <label className="w-60" htmlFor="studentName">
-            Username:
+    <div>
+      <form onSubmit={handleSubmit} className="flex flex-col h-content">
+        {/* =====Title Input======= */}
+        <div className="student-name flex p-2 justify-center items-center">
+          <label className="w-60" htmlFor="title">
+            Book Title:
           </label>
 
           <Input
-            id="studentName"
+            id="title"
             type="text"
-            name="studentName"
-            value={formState.studentName}
+            name="title"
+            value={bookState.title}
             onChange={handleChange}
             required
           />
         </div>
+        {/* =====Author Input======= */}
+        <div className="student-name flex p-2 justify-center items-center">
+          <label className="w-60" htmlFor="author">
+            Author:
+          </label>
 
+          <Input
+            id="author"
+            type="text"
+            name="author"
+            value={bookState.author}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        {/* =====Genre select======= */}
         <div className="book-genre flex p-2 justify-center items-center">
           <label className="w-60" htmlFor="bookGenre">
             Book Genre:
@@ -139,31 +153,28 @@ export default function MainForm() {
             </SelectContent>
           </Select>
         </div>
-
-        <div className="no-pages flex p-2 justify-center items-center ">
-          <label className="w-60" htmlFor="numberOfPages">
+        {/* =====Pages Input======= */}
+        <div className="no-pages flex p-2 justify-center items-center">
+          <label className="w-60" htmlFor="numPages">
             Number of Pages:
           </label>
           <Input
-            id="numberOfPages"
+            id="numPages"
             type="number"
-            name="numberOfPages"
-            value={formState.numberOfPages}
+            name="numPages"
+            value={bookState.numPages}
             onChange={handleChange}
             required
           />
         </div>
 
+        {/* =====Submit button======= */}
         <div className="button  flex justify-center items-center m-2">
           <Button type="submit" className="w-[150px]">
             Submit
           </Button>
         </div>
       </form>
-      {/* {console.log(tableState.books, "printing in line")} */}
-      <div className="table-section">
-        <FetchedTable props={tableState.books} />
-      </div>
     </div>
   );
 }
